@@ -1,0 +1,101 @@
+\documentclass{ctexart}
+\usepackage{amsmath}
+\usepackage{mathtools}
+\title{计算物理学作业}
+\author{艾鑫}
+
+\newcounter{mycnt}
+\setcounter{mycnt}{0}
+\newenvironment{problem}[1][1.1]{\noindent \stepcounter{mycnt}\themycnt.(#1)}{
+
+}
+
+\newenvironment{answer}{\textbf{解}:}{
+\vspace{0.5cm}
+}
+
+\newcommand\diff{\,\mathrm{d}}
+
+\begin{document}
+\maketitle
+
+\begin{problem}[3.10]
+用4点高斯求积公式编程计算积分
+\begin{equation}
+  I = \int_{1.4}^{2.0} \int_{1.0}^{1.5} \ln (x+2y) \diff x \diff y
+\end{equation}
+\end{problem}
+
+\begin{answer}
+  将积分区间$R = \{(x,y)|1.4 \leq x \leq 2.0, \, 1.0 \leq y \leq 1.5\}$变换到$R' = \{(u,v)|-1 \leq u \leq -1, \, -1 \leq v \leq 1\}$, 即有
+  \begin{equation}
+    \left\{
+      \begin{lgathered}
+        x = \frac{1}{2}(b_2 + a_2) + \frac{1}{2} (b_2 - a_2)u \\
+        y = \frac{1}{2}(b_1 + a_1) + \frac{1}{2} (b_1 - a_1)v
+      \end{lgathered}
+    \right.
+  \end{equation}
+因此有
+\begin{equation}
+  I = 0.0755 \int_{-1}^{1} \int_{-1}^{1} \ln (0.3 u + 0.5 v + 4.2) \diff u \diff v
+\end{equation}
+使用$n=3$的4点高斯求积公式, 有
+\end{answer}
+
+\begin{problem}[4.7]
+  应用龙格-库塔法求初值问题
+  \begin{equation}
+    \left\{
+    \begin{lgathered}
+      y'' + 2ty' + t^2 y = e^t, \quad 0 \leq t \leq 1 \\
+      y(0) = 1, y'(0) = -1
+    \end{lgathered}
+    \right.
+  \end{equation}
+的数值解,取步长$h = 0.1$.
+\end{problem}
+
+\begin{answer}
+  测试答案
+\end{answer}
+
+\begin{problem}[8.4]
+  试采用有限差分法编程求解单位圆域中泊松方程在网格节点处的值
+  \begin{equation}
+    \left\{
+      \begin{lgathered}
+        \nabla^2u = -50r^2 \sin (2\phi) \\
+        u(1, \phi) = 0
+      \end{lgathered}
+    \right.
+  \end{equation}
+  其中$u(1,\phi)=0$表示半径为1的单位圆边界上$u$值为$1$. 取$h = 0.1, \omega = 1.25, \varepsilon = 10^{-5}, M = 16$, 并与解析解$u = \frac{25}{6}r^2(1-r^2) \sin(2\phi)$作比较.
+\end{problem}
+
+\begin{answer}
+测试回答
+\end{answer}
+
+
+\begin{problem}[11.1]
+  编程计算例11.1中点3的电势和1,2两点的电量(见图11.9).
+\end{problem}
+
+\begin{answer}
+测试回答
+\end{answer}
+
+\begin{problem}[12.9]
+  采用蒙特卡罗方法编程求解一下方程.
+  \begin{enumerate}
+  \item[(1)] $e^{-x^3}-\tan x + 800 = 0 \,(0 < x < \pi / 2)$;
+  \item[(2)] $x + 5e^{-x} - 5 = 0 \, (0 < x < 10)$.
+  \end{enumerate}
+\end{problem}
+
+\begin{answer}
+测试回答
+\end{answer}
+
+\end{document}
