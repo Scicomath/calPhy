@@ -1,6 +1,7 @@
 \documentclass{ctexart}
 \usepackage{tikz}
 \usepackage{amsmath}
+\usepackage{bm}
 \usepackage{mathtools}
 \usepackage{listings}
 \usepackage{xcolor}
@@ -328,7 +329,84 @@ save -ascii realU.dat realU
 \end{problem}
 
 \begin{answer}
-测试回答
+取每个边即为边界元.首先计算对角线元素$H_{ii}, G_{ii}$. 由于
+\begin{gather}
+  H_{ii} = - C_i = -\pi \quad (i \in \varGamma\text{光滑点}) \\
+  G_{ii} = \int_{\varGamma_i}u^{*} \diff s = \int_{\varGamma_i} \ln r \diff s = 2\int_0^{s_i/2} \ln r \diff r = s_i (\ln \frac{s_i}{2} - 1)
+\end{gather}
+然后根据下式计算$H_{ij}$非对角元:
+\begin{equation}
+  H_{ij} = \int_{\varGamma_j}q^{*}\diff s = \int_{\varGamma_j} \frac{\partial \ln r}{\partial n} \diff s = \frac{r_d}{|r_d|} \theta_j = \pm \theta_j.
+\end{equation}
+根据下式计算$G_{ij}$非对角元:
+\begin{equation}
+  \begin{split}
+    G_{ij} &= \int_{0}^{s_j} \ln r \diff s = \frac{1}{2} \int_0^{s_j} \ln [r_d^2 + (s-d)^2] \diff s \\
+     &= (s_j - d)\ln r_2 + d \ln r_1 - s_j + |r_d| \theta_j
+  \end{split}
+\end{equation}
+
+通过计算出来的$H_{ij}, G_{ij}$形成方程
+\begin{equation}
+  \bm{A}\bm{X} = \bm{R}.
+\end{equation}
+通过求解方程组求得:
+\begin{equation}
+  q_1 = -2.580, \quad q_2 = 1.72965, \quad u_3 = 0.82492.
+\end{equation}
+
+MATLAB代码如下:
+\begin{lstlisting}[language=Octave]
+% 第四题 边界元法求解泊松方程的混合边值问题
+% 初始化变量
+n = 3;
+H = zeros(n);
+G = zeros(n);
+% 计算相关参数
+function [d, rd, theta, r1, r2, s] = parafun(i,j)
+endPointx = [0,1; 1,0; 0,0];
+endPointy = [0,0; 0,1; 1,0];
+midPointx = [0.5, 0.5, 0];
+midPointy = [0, 0.5, 0.5];
+xi = midPointx(i);
+yi = midPointy(i);
+x1 = endPointx(j,1);
+x2 = endPointx(j,2);
+y1 = endPointy(j,1);
+y2 = endPointy(j,2);
+r1Vec = [x1-xi, y1-yi];
+r2Vec = [x2-xi, y2-yi];
+r21Vec = [x2-x1, y2-y1];
+s = sqrt(sum(r21Vec.^2));
+r1 = sqrt(sum(r1Vec.^2));
+r2 = sqrt(sum(r2Vec.^2));
+d = -dot(r1Vec, r21Vec./s);
+nVec = [(y2-y1)/s, (x1-x2)/s];
+rd = dot(r1Vec, nVec);
+theta = acos(dot(r1Vec,r2Vec)/(r1*r2));
+endfunction
+
+sVec = [1, sqrt(2), 1];
+
+for i = 1:n
+  for j = 1:n
+    if i == j % 计算对角元素
+      H(i,i) = -pi;
+      G(i,i) = sVec(i)*(log(sVec(i)/2) - 1);
+    else % 计算非对角元素
+      [d, rd, theta, r1, r2, s] = parafun(i,j);
+      H(i,j) = theta;
+      G(i,j) = (s-d)*log(r2) + d*log(r1) - s + abs(rd)*theta;
+    end
+  end
+end
+
+% 计算A和R
+A = [G(:,1:2),-H(:,3)];
+R = [H(:,1:2),-G(:,3)]*[0;1;0];
+uq = inv(A)*R;
+disp(uq)
+\end{lstlisting}
 \end{answer}
 
 \begin{problem}[12.9]
@@ -340,7 +418,67 @@ save -ascii realU.dat realU
 \end{problem}
 
 \begin{answer}
-测试回答
+利用逐步逼近的方法寻找方程$f(x) = 0$的近似根$x_0$, 使得$f(x_0) \leq \varepsilon$, 其中$\varepsilon$是事先指定的小量.
+
+首先取一初值$x_0$, 令$x_1 = x_0 + b(2R-1)$, 则有$x_0 -b < x_1 < x_0 + b$. 即以$x_0$为中心, 以$b$为半径, 随机游走到$x_1$, 若$|f(x_1)| < |f(x_0)|$, 就再以$x_1$为中心继续游走, 直至$|f(x)| \leq \varepsilon$为止, 则$x$为所求根.
+
+具体操作时, 刚开始$b$可取得大一些, 然后逐渐减小, 压缩$x$的游动范围.为了防止无休止的游动, 可先设置一个较大的整数$N$, 当 游走步数$m = N$时, 若$|f(x)| \leq \varepsilon$仍不满足, 则减小$b$.
+
+通过MATLAB求解得方程(1)和方程(2)的根分别为:
+\begin{equation}
+  x_1 = 1.569546360148, \quad x_2 = 4.965106989195
+\end{equation}
+
+MATLAB代码如下:
+\begin{lstlisting}[language=Octave]
+% 第五题 采用蒙特卡罗法解方程
+
+root1 = 0;
+root2 = 0;
+% 定义函数
+function y = fun1(x)
+  y = exp(-x^3) - tan(x) + 800;
+endfunction
+
+function y = fun2(x)
+  y = x + 5*exp(-x) - 5;
+endfunction
+
+function root = findRoot(x0, b, N, epsilon, fun)
+  m = 0;
+  x = x0;
+
+  f = feval(fun,x);
+  if abs(f) < epsilon
+    return
+  end
+  
+  do
+    xtemp = x + b*(2*rand()-1);
+    ftemp = feval(fun,xtemp);
+    m = m + 1;
+    if m == N
+      b = b/2;
+      m = 0;
+    end
+    if abs(ftemp) < abs(f)
+      f = ftemp;
+      x = xtemp;
+    end
+  until abs(f)<epsilon
+  root = x;
+endfunction
+
+f = @fun1;
+root1 = findRoot(1, 0.2, 20, 10^(-5), f);
+disp(root1)
+disp(fun1(root1))
+
+f = @fun2;
+root2 = findRoot(5, 0.3, 20, 10^(-5), f);
+disp(root2)
+disp(fun2(root2))
+\end{lstlisting}
 \end{answer}
 
 \end{document}

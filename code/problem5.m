@@ -1,6 +1,7 @@
 % 第五题 采用蒙特卡罗法解方程
 
-a = 1;
+root1 = 0;
+root2 = 0;
 % 定义函数
 function y = fun1(x)
   y = exp(-x^3) - tan(x) + 800;
